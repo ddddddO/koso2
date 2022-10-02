@@ -43,8 +43,8 @@ func Run(ghUserID, plainMessage string, callback func(encrypted string) error) e
 func fetchPublicKeys(ghUserID string) ([]string, error) {
 	u := &url.URL{
 		Scheme: "https",
-		Host: "github.com",
-		Path: fmt.Sprintf("%s.keys", ghUserID),
+		Host:   "github.com",
+		Path:   fmt.Sprintf("%s.keys", ghUserID),
 	}
 
 	resp, err := http.Get(u.String())
@@ -60,7 +60,7 @@ func fetchPublicKeys(ghUserID string) ([]string, error) {
 	scanner := bufio.NewScanner(resp.Body)
 	pubKeys := []string{}
 	for scanner.Scan() {
-		rawPub := scanner.Text()		
+		rawPub := scanner.Text()
 		pubKeys = append(pubKeys, strings.TrimLeft(rawPub, "ssh-rsa "))
 	}
 
@@ -90,7 +90,7 @@ func parsePublicKey(publicKey string) (*rsa.PublicKey, error) {
 
 func encryptMessage(plainMessage string, pubKey *rsa.PublicKey) (string, error) {
 	// label := []byte("orderS")
-	var label []byte 
+	var label []byte
 
 	// crypto/rand.Reader is a good source of entropy for randomizing the
 	// encryption function.
