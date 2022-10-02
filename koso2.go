@@ -20,16 +20,21 @@ func main() {
 	const ghUserID = "ddddddO"
 	const plain = `AAA
 こんにちは
-！！
+！！!!
 `
 
-	if err := run(ghUserID, plain); err != nil {
+	cb := func(enc string) error {
+		fmt.Print(enc)
+		return nil
+	}
+
+	if err := run(ghUserID, plain, cb); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
-func run(ghUserID, plainMessage string) error {
+func run(ghUserID, plainMessage string, callback func(encrypted string) error) error {
 	pubKeys, err := fetchPublicKeys(ghUserID)
 	if err != nil {
 		return err
@@ -47,7 +52,9 @@ func run(ghUserID, plainMessage string) error {
 		return err
 	}
 
-	fmt.Print(encrypted)
+	if err := callback(encrypted); err != nil {
+		return err
+	}
 
 	return nil
 }
