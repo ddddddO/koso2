@@ -2,7 +2,9 @@ package main
 
 import (
 	"bufio"
+	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
 	"net/http"
@@ -16,14 +18,18 @@ import (
 // NOTE: 一旦、RSAのみ考える
 func main() {
 	const ghUserID = "ddddddO"
+	const plain = `AAA
+こんにちは
+！！
+`
 
-	if err := run(ghUserID); err != nil {
+	if err := run(ghUserID, plain); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
-func run(ghUserID string) error {
+func run(ghUserID, plainMessage string) error {
 	pubKeys, err := fetchPublicKeys(ghUserID)
 	if err != nil {
 		return err
@@ -36,8 +42,12 @@ func run(ghUserID string) error {
 	}
 
 	// TODO: 続きは暗号化から
+	encrypted, err := encryptMessage(plainMessage, rsaPubKey)
+	if err != nil {
+		return err
+	}
 
-	fmt.Println(rsaPubKey)
+	fmt.Print(encrypted)
 
 	return nil
 }
@@ -88,4 +98,19 @@ func parsePublicKey(publicKey string) (*rsa.PublicKey, error) {
 
 	pub := sshCryptoPublicKey.CryptoPublicKey()
 	return pub.(*rsa.PublicKey), nil
+}
+
+func encryptMessage(plainMessage string, pubKey *rsa.PublicKey) (string, error) {
+	// label := []byte("orderS")
+	var label []byte 
+
+	// crypto/rand.Reader is a good source of entropy for randomizing the
+	// encryption function.
+	rng := rand.Reader
+	ciphertext, err := rsa.EncryptOAEP(sha256.New(), rng, pubKey, []byte(plainMessage), label)
+	if err != nil {
+		return "", fmt.Errorf("Error from encryption: %s\n", err)
+	}
+
+	return string(ciphertext), nil
 }
