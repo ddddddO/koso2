@@ -24,7 +24,6 @@ import (
 
 func main() {
 	ghUserID := "ddddddO"
-
 	plainMessage := `こんにちは！
 Hello!
 Halo!
@@ -34,12 +33,8 @@ Bonjour!
 habari!
 `
 
-    // 'encrypted' is the encrypted plainMessage.
-	callback := func(encrypted string) error {
-    //
-    // For example, we could add processing to send encrypted message to Slack.
-    //
-    fmt.Print(encrypted)
+	callback := func(encrypted string) error { // 'encrypted' is the encrypted plainMessage.
+            fmt.Print(encrypted) // For example, we could add processing to send encrypted message to Slack.
 		return nil
 	}
 
