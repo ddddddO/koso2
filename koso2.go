@@ -1,4 +1,4 @@
-package main
+package koso2
 
 import (
 	"bufio"
@@ -9,32 +9,13 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 
 	"golang.org/x/crypto/ssh"
 )
 
 // NOTE: 一旦、RSAのみ考える
-func main() {
-	const ghUserID = "ddddddO"
-	const plain = `AAA
-こんにちは
-！！!!
-`
-
-	cb := func(enc string) error {
-		fmt.Print(enc)
-		return nil
-	}
-
-	if err := run(ghUserID, plain, cb); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-}
-
-func run(ghUserID, plainMessage string, callback func(encrypted string) error) error {
+func Run(ghUserID, plainMessage string, callback func(encrypted string) error) error {
 	pubKeys, err := fetchPublicKeys(ghUserID)
 	if err != nil {
 		return err
