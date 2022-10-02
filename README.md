@@ -34,7 +34,7 @@ habari!
 `
 
 	callback := func(encrypted string) error { // 'encrypted' is the encrypted plainMessage.
-            fmt.Print(encrypted) // For example, we could add processing to send encrypted message to Slack.
+                fmt.Print(encrypted) // For example, we could add processing to send encrypted message to Slack.
 		return nil
 	}
 
