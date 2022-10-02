@@ -27,7 +27,6 @@ func Run(ghUserID, plainMessage string, callback func(encrypted string) error) e
 		return err
 	}
 
-	// TODO: 続きは暗号化から
 	encrypted, err := encryptMessage(plainMessage, rsaPubKey)
 	if err != nil {
 		return err
@@ -97,7 +96,7 @@ func encryptMessage(plainMessage string, pubKey *rsa.PublicKey) (string, error) 
 	rng := rand.Reader
 	ciphertext, err := rsa.EncryptOAEP(sha256.New(), rng, pubKey, []byte(plainMessage), label)
 	if err != nil {
-		return "", fmt.Errorf("Error from encryption: %s\n", err)
+		return "", err
 	}
 
 	return string(ciphertext), nil
