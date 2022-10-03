@@ -2,6 +2,8 @@ package koso2
 
 import (
 	"bufio"
+	"crypto"
+	"crypto/ed25519"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -59,14 +61,14 @@ func fetchPublicKeys(ghUserID string) ([]string, error) {
 	scanner := bufio.NewScanner(resp.Body)
 	pubKeys := []string{}
 	for scanner.Scan() {
-		rawPub := scanner.Text()
-		pubKeys = append(pubKeys, strings.TrimLeft(rawPub, "ssh-rsa "))
+		pubKeys = append(pubKeys, scanner.Text())
 	}
 
 	return pubKeys, nil
 }
 
-func parsePublicKey(publicKey string) (*rsa.PublicKey, error) {
+func parsePublicKey(raw string) (crypto.PublicKey, error) {
+	publicKey := strings.TrimLeft(raw, "ssh-rsa ")
 	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(publicKey)))
 	n, err := base64.StdEncoding.Decode(decoded, []byte(publicKey))
 	if err != nil {
@@ -83,21 +85,29 @@ func parsePublicKey(publicKey string) (*rsa.PublicKey, error) {
 		return nil, fmt.Errorf("invalid...")
 	}
 
-	pub := sshCryptoPublicKey.CryptoPublicKey()
-	return pub.(*rsa.PublicKey), nil
+	return sshCryptoPublicKey.CryptoPublicKey(), nil
 }
 
-func encryptMessage(plainMessage string, pubKey *rsa.PublicKey) (string, error) {
-	// label := []byte("orderS")
-	var label []byte
+// func encryptMessage(plainMessage string, pubKey *rsa.PublicKey) (string, error) {
+func encryptMessage(plainMessage string, pubKey crypto.PublicKey) (string, error) {
+	switch publicKey := pubKey.(type) {
+	case *rsa.PublicKey:
+		// label := []byte("orderS")
+		var label []byte
 
-	// crypto/rand.Reader is a good source of entropy for randomizing the
-	// encryption function.
-	rng := rand.Reader
-	ciphertext, err := rsa.EncryptOAEP(sha256.New(), rng, pubKey, []byte(plainMessage), label)
-	if err != nil {
-		return "", err
+		// crypto/rand.Reader is a good source of entropy for randomizing the
+		// encryption function.
+		rng := rand.Reader
+		ciphertext, err := rsa.EncryptOAEP(sha256.New(), rng, publicKey, []byte(plainMessage), label)
+		if err != nil {
+			return "", err
+		}
+
+		return string(ciphertext), nil
+	case *ed25519.PublicKey:
+		// Encrypt関数がない。https://pkg.go.dev/crypto/ed25519
+		return "", fmt.Errorf("not supported")
+	default:
+		return "", fmt.Errorf("failed to encrypt")
 	}
-
-	return string(ciphertext), nil
 }
