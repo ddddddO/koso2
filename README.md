@@ -68,8 +68,14 @@ $ go install github.com/ddddddO/koso2/cmd/koso2@latest
 ```
 
 ### Miscellaneous
-#### Multiple Callbacks
+#### Multiple callbacks
 
 ```go
 err := koso2.Run(ghUserID, plainMessage, callback1, callback2, callback3)
+```
+
+#### Multiple callbacks concurrently
+
+```go
+err := koso2.RunConcurrently(ghUserID, plainMessage, callback1, callback2, callback3)
 ```

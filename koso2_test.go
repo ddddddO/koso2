@@ -3,6 +3,7 @@ package koso2
 import (
 	"fmt"
 	"testing"
+	"time"
 )
 
 func TestRun(t *testing.T) {
@@ -49,7 +50,66 @@ func TestRun(t *testing.T) {
 			}
 		})
 	}
+}
 
+func TestRunConcurrently(t *testing.T) {
+	tests := map[string]struct {
+		ghUserID     string
+		plainMessage string
+		callbacks    []callbackFn
+	}{
+		"one callback": {
+			ghUserID:     "ddddddO",
+			plainMessage: "aaaaAAaあaa",
+			callbacks: []callbackFn{
+				func(encrypted string) error {
+					fmt.Print(encrypted)
+					return nil
+				},
+			},
+		},
+		"multiple callbacks": {
+			ghUserID:     "ddddddO",
+			plainMessage: "aaaaAAaあaa",
+			callbacks: []callbackFn{
+				func(encrypted string) error {
+					time.Sleep(time.Second)
+					fmt.Println("callback 1")
+					fmt.Print(encrypted)
+					return nil
+				},
+				func(encrypted string) error {
+					time.Sleep(time.Second)
+					fmt.Println("callback 2")
+					fmt.Print(encrypted)
+					return nil
+				},
+				func(encrypted string) error {
+					time.Sleep(time.Second)
+					fmt.Println("callback 3")
+					fmt.Print(encrypted)
+					return nil
+				},
+				func(encrypted string) error {
+					time.Sleep(time.Second)
+					fmt.Println("callback 4")
+					fmt.Print(encrypted)
+					return nil
+				},
+			},
+		},
+	}
+
+	for name, tt := range tests {
+		tt := tt
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			if err := RunConcurrently(tt.ghUserID, tt.plainMessage, tt.callbacks...); err != nil {
+				t.Errorf("failed to test:\n%+v\n", err)
+			}
+		})
+	}
 }
 
 func TestParsePublicKeyAndEncryptMessage(t *testing.T) {

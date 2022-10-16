@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"golang.org/x/crypto/ssh"
+	"golang.org/x/sync/errgroup"
 )
 
 type callbackFn func(encrypted string) error
@@ -43,6 +44,37 @@ func Run(ghUserID, plainMessage string, callbacks ...callbackFn) error {
 	}
 
 	return nil
+}
+
+func RunConcurrently(ghUserID, plainMessage string, callbacks ...callbackFn) error {
+	pubKeys, err := fetchPublicKeys(ghUserID)
+	if err != nil {
+		return err
+	}
+
+	pk := pubKeys[0] // ローカルにあるのがこれなので、一旦
+	rsaPubKey, err := parsePublicKey(pk)
+	if err != nil {
+		return err
+	}
+
+	encrypted, err := encryptMessage(plainMessage, rsaPubKey)
+	if err != nil {
+		return err
+	}
+
+	eg := errgroup.Group{}
+	for _, c := range callbacks {
+		callback := c
+		eg.Go(func() error {
+			if err := callback(encrypted); err != nil {
+				return err
+			}
+			return nil
+		})
+	}
+
+	return eg.Wait()
 }
 
 func fetchPublicKeys(ghUserID string) ([]string, error) {
