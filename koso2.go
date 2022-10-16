@@ -16,8 +16,10 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+type callbackFn func(encrypted string) error
+
 // NOTE: 一旦、RSAのみ考える
-func Run(ghUserID, plainMessage string, callback func(encrypted string) error) error {
+func Run(ghUserID, plainMessage string, callbacks ...callbackFn) error {
 	pubKeys, err := fetchPublicKeys(ghUserID)
 	if err != nil {
 		return err
@@ -34,8 +36,10 @@ func Run(ghUserID, plainMessage string, callback func(encrypted string) error) e
 		return err
 	}
 
-	if err := callback(encrypted); err != nil {
-		return err
+	for _, callback := range callbacks {
+		if err := callback(encrypted); err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -6,4 +6,4 @@ dec:
     -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256
 
 test:
-	go test ./...
+	go test ./... -v

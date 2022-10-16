@@ -66,3 +66,10 @@ Currently, this CLI only has function of encrypting message with public key of s
 ```sh
 $ go install github.com/ddddddO/koso2/cmd/koso2@latest
 ```
+
+### Miscellaneous
+#### Multiple Callbacks
+
+```go
+err := koso2.Run(ghUserID, plainMessage, callback1, callback2, callback3)
+```
